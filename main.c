@@ -74,3 +74,35 @@ int carregar_dados_iniciais(float velocidade[][2], float sensores_frontais[][3],
     printf("Os dados foram iniciados, 50 registros adicionados\n");
     return 50; //total de amostras preenchidas
 }
+int inserir_amostras(float velocidade[][2], float sensores_frotais[][3], float sensores_laterais[][2], int total_amostras){
+    if(total_amostras >= MAX_AMOSTRAS){
+        printf("Erro, atingiu o limite máximo de amostras %d\n", MAX_AMOSTRAS);
+        return total_amostras;
+    }
+    printf("\n Inserir nova amostra (indice %d)\n", total_amostras);
+
+    printf("Digite a velocidade atual (km/h): ");
+    scanf("%f", &velocidade[total_amostras][0]);
+
+    printf("Digite a velocidade do veículo a frente (km/h): ");
+    scanf("%f", &velocidade[total_amostras][1]);
+
+    printf("Digite a leitura do Radar Frontal (m): ");
+    scanf("%f", &sensores_frotais[total_amostras][0]);
+
+    printf("Digite a leitura do  lidar frontal (m): ");
+    scanf("%f", &sensores_frotais[total_amostras][1]);
+
+    printf("Digite a leitura da camera frontal (m): ");
+    scanf("%f", &sensores_frotais[total_amostras][2]);
+
+    printf("Digite a distância da faixa esquerda (m): ");
+    scanf("%f", &sensores_laterais[total_amostras][0]);
+
+    printf("Digite a distância da faixa direita (m): ");
+    scanf("%f", &sensores_laterais[total_amostras][1]);
+
+    printf("Amostra inserida\n");
+    // retorna nova amostra
+    return total_amostras + 1;
+}
