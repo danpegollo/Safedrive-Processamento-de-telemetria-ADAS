@@ -4,11 +4,65 @@
 #include <time.h>
 
 #define MAX_AMOSTRAS 100
+
 // protótipo das funções
 int carregar_dados_iniciais(float velocidade[][2], float sensores_frotais[][3], float sensores_laterais[][2], int total_amostras);
 int inserir_amostras(float velocidade[][2], float sensores_frotais[][3], float sensores_laterais[][2], int total_amostras);
 void processar_relatorio(float velocidade[][2], float sensores_frontais[][3], float sensores_laterais[][2], 
     float processamento[][2], int status[][3], int total_amostras, float atrito, int sensibilidade);
+
+void analise_risco_frontal(float velocidades[][2], float processamento[][2], int status[][3], int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+            float velocidade_relativa = velocidades[i][0] - velocidades[i][1];
+            
+            if (velocidade_relativa <= 0) {
+                status[i][0] = 0;
+            }
+            else {
+                float distancia_segura = processamento[i][1];
+                float distancia_validada = processamento[i][0];
+
+                if (distancia_validada >= distancia_segura) {
+                    status[i][0] = 0;
+                }
+                else if (distancia_validada >= (distancia_segura / 2.0)) {
+                    status[i][0] = 1;
+                }
+                else {
+                    status [i][0] = 2;
+                }
+            }
+    }
+}
+
+void assistente_faixa_dinamica(float velocidades[][2], float sensores_laterais[][2], int status[][3], int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        float margem_dinamica = 0.50;
+        float velocidade_atual = velocidades[i][0];
+        
+        if (velocidade_atual > 80.0) {
+            margem_dinamica += 0.01 * (velocidade_atual - 80.0);
+        }
+
+        int k;
+        for (k = 0; k < 2; k++) {
+            float leitura = sensores_laterais[i][k];
+
+            if (leitura < margem_dinamica) {
+                status[i][k + 1] = 2;
+            }
+            else if (leitura < (margem_dinamica + 0.20)) {
+                status[i][k + 1] = 1;
+            }
+            else {
+                status[i][k + 1] = 0;
+            }
+        }
+    }
+}
+
 
 int main(){
     //matrizes exigidas
