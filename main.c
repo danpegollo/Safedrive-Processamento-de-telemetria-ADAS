@@ -5,7 +5,7 @@
 
 #define MAX_AMOSTRAS 100
 // protótipo das funções
-int carregar_dados_iniciais(float velocidade[][2], float sensores_frotais[][3], float sensores_laterais[][2], int total_amostras);
+int carregar_dados_iniciais(float velocidade[][2], float sensores_frontais[][3], float sensores_laterais[][2], int total_amostras);
 int inserir_amostras(float velocidade[][2], float sensores_frotais[][3], float sensores_laterais[][2], int total_amostras);
 void processar_relatorio(float velocidade[][2], float sensores_frontais[][3], float sensores_laterais[][2], 
     float processamento[][2], int status[][3], int total_amostras, float atrito, int sensibilidade);
