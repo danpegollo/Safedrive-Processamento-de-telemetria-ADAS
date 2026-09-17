@@ -1,4 +1,7 @@
 //importa bibliotecas
+//Daniel Pegollo Reche Bujaldon 10769719
+//Heitor Do Vale Allas Chagas 10769698
+//Leonardo dos Santos Pessanha 10769599
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
