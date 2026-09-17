@@ -28,6 +28,9 @@ int main(){
     int opcao;
     int total_amostras = 0;
 
+    //inicia semente do gerador de números aleatórios
+    srand(time(NULL));
+
     //leitura obrigatória do atrito e sensibilidade
     printf("Digite o coeficiente de atrito: \n");
     scanf("%f", &atrito);
@@ -48,7 +51,39 @@ int main(){
             total_amostras = carregar_dados_iniciais(velocidade, sensores_frontais, sensores_laterais, total_amostras);
             break;
         case 2:
-            total_amostras = inserir_amostras(velocidade, sensores_frontais, sensores_laterais, total_amostras);
+            if(total_amostras >= MAX_AMOSTRAS){
+                printf("Erro, atingiu o limite máximo de amostras %d\n", MAX_AMOSTRAS);
+            } else {
+                 float vel_atual, vel_frente, radar, lidar, camera, faixa_esq, faixa_dir;
+ 
+                printf("\n Inserir nova amostra (indice %d)\n", total_amostras);
+ 
+                printf("Digite a velocidade atual (km/h): ");
+                scanf("%f", &vel_atual);
+ 
+                printf("Digite a velocidade do veículo a frente (km/h): ");
+                scanf("%f", &vel_frente);
+ 
+                printf("Digite a leitura do Radar Frontal (m): ");
+                scanf("%f", &radar);
+ 
+                printf("Digite a leitura do lidar frontal (m): ");
+                scanf("%f", &lidar);
+ 
+                printf("Digite a leitura da camera frontal (m): ");
+                scanf("%f", &camera);
+ 
+                printf("Digite a distância da faixa esquerda (m): ");
+                scanf("%f", &faixa_esq);
+ 
+                printf("Digite a distância da faixa direita (m): ");
+                scanf("%f", &faixa_dir);
+ 
+                total_amostras = inserir_amostras(velocidade, sensores_frontais, sensores_laterais, total_amostras,
+                    vel_atual, vel_frente, radar, lidar, camera, faixa_esq, faixa_dir);
+ 
+                printf("Amostras inserida\n");
+            }
             break;
         case 3:
             processar_relatorio(velocidade, sensores_frontais, sensores_laterais, processamento, status, total_amostras, atrito, sensibilidade);
@@ -72,43 +107,25 @@ int carregar_dados_iniciais(float velocidade[][2], float sensores_frontais[][3],
         sensores_frontais[i][1] = 5 + (rand() % 96);
         sensores_frontais[i][2] = 5 + (rand() % 96);
         //sensores laterais, esquerda e direita, 0.1 a 1.5m
-        sensores_laterais[i][0] = 0.1 + ((rand() % 140)/100);
-        sensores_laterais[i][1] = 0.1 + ((rand() %140)/100);
+        sensores_laterais[i][0] = 0.1 + ((rand() % 140)/100.0);
+        sensores_laterais[i][1] = 0.1 + ((rand() %140)/100.0);
     }
-    printf("Os dados foram iniciados, 50 registros adicionados\n");
     return 50; //total de amostras preenchidas
 }
-int inserir_amostras(float velocidade[][2], float sensores_frotais[][3], float sensores_laterais[][2], int total_amostras){
-    //verifica se a qtd amostras é maior que o limite
-    if(total_amostras >= MAX_AMOSTRAS){
-        printf("Erro, atingiu o limite máximo de amostras %d\n", MAX_AMOSTRAS);
-        return total_amostras;
-    }
-    printf("\n Inserir nova amostra (indice %d)\n", total_amostras);
-
-    printf("Digite a velocidade atual (km/h): ");
-    scanf("%f", &velocidade[total_amostras][0]);
-
-    printf("Digite a velocidade do veículo a frente (km/h): ");
-    scanf("%f", &velocidade[total_amostras][1]);
-
-    printf("Digite a leitura do Radar Frontal (m): ");
-    scanf("%f", &sensores_frotais[total_amostras][0]);
-
-    printf("Digite a leitura do  lidar frontal (m): ");
-    scanf("%f", &sensores_frotais[total_amostras][1]);
-
-    printf("Digite a leitura da camera frontal (m): ");
-    scanf("%f", &sensores_frotais[total_amostras][2]);
-
-    printf("Digite a distância da faixa esquerda (m): ");
-    scanf("%f", &sensores_laterais[total_amostras][0]);
-
-    printf("Digite a distância da faixa direita (m): ");
-    scanf("%f", &sensores_laterais[total_amostras][1]);
-
-    printf("Amostra inserida\n");
-    // retorna nova amostra
+int inserir_amostras(float velocidade[][2], float sensores_frontais[][3], float sensores_laterais[][2], int total_amostras,
+    float vel_atual, float vel_frente, float radar, float lidar, float camera, float faixa_esq, float faixa_dir){
+    //grava os valores já lidos na main
+    velocidade[total_amostras][0] = vel_atual;
+    velocidade[total_amostras][1] = vel_frente;
+ 
+    sensores_frontais[total_amostras][0] = radar;
+    sensores_frontais[total_amostras][1] = lidar;
+    sensores_frontais[total_amostras][2] = camera;
+ 
+    sensores_laterais[total_amostras][0] = faixa_esq;
+    sensores_laterais[total_amostras][1] = faixa_dir;
+ 
+    // retorna nova quantidade de amostras
     return total_amostras + 1;
 }
 void extrair_mediana(float processamento[MAX_AMOSTRAS][2], float sensores_frontais[MAX_AMOSTRAS][3], int total_amostras) {
@@ -211,4 +228,71 @@ void assistente_faixa_dinamica(float velocidades[][2], float sensores_laterais[]
             }
         }
     }
+}
+void processar_relatorio(float velocidade[][2], float sensores_frontais[][3], float sensores_laterais[][2], float processamento[][2], int status[][3], int total_amostras, float atrito, int sensibilidade) {
+    
+    if (total_amostras == 0) {
+        printf("\nNão há nenhuma amostra para processamento\n");
+        return;
+    }
+ 
+    extrair_mediana(processamento, sensores_frontais, total_amostras);
+    calcular_distancia_segura(processamento, velocidade, total_amostras, atrito, sensibilidade);
+    analise_risco_frontal(velocidade, processamento, status, total_amostras);
+    assistente_faixa_dinamica(velocidade, sensores_laterais, status, total_amostras);
+ 
+    printf("\n--------------------------------------------------------------------\n");
+    printf("                  RELATÓRIO DE TELEMETRIA E RISCOS                    \n");
+    printf("----------------------------------------------------------------------\n");
+ 
+    for (int i = 0; i < total_amostras; i++) {
+        printf("\n AMOSTRA %d \n", i + 1);
+ 
+        printf("(Dados de entrada): \n");
+        printf("Velocidade Atual: %.1f km/h ; Veículo à Frente: %.1f km/h\n", velocidade[i][0], velocidade[i][1]);
+        printf("Radar: %.2f m ; Lidar: %.2f m ; Câmera: %.2f m\n", sensores_frontais[i][0], sensores_frontais[i][1], sensores_frontais[i][2]);
+        printf("Faixa da Esquerda: %.2f m ; Faixa da Direita: %.2f m\n", sensores_laterais[i][0], sensores_laterais[i][1]);
+ 
+        printf("(Dados processados): \n");
+        printf("Distância Validada: %.2f m ; Distância Segura Exigida: %.2f m\n", processamento[i][0], processamento[i][1]);
+ 
+        printf("(Traduçâo de status): \n");
+        
+        printf("Status Frontal: ");
+        if (status[i][0] == 0) {
+            printf("SEGURO\n");
+        } else if (status[i][0] == 1) {
+            printf("ATENÇÃO\n");
+        } else {
+            printf("RISCO DE COLISÃO (AEB ACIONADO)\n");
+        }
+ 
+        printf("Faixa Esquerda: ");
+        if (status[i][1] == 0) {
+            printf("NORMAL\n");
+        } else if (status[i][1] == 1) {
+            printf("ATENÇÃO\n");
+        } else {
+            printf("PERIGO DE INVASÃO\n");
+        }
+ 
+        printf("Faixa Direita: ");
+        if (status[i][2] == 0) {
+            printf("NORMAL\n");
+        } else if (status[i][2] == 1) {
+            printf("ATENÇÃO\n");
+        } else {
+            printf("PERIGO DE INVASÃO\n");
+        }
+ 
+        printf("(Decisão Geral): ");
+        if (status[i][0] == 2 || status[i][1] == 2 || status[i][2] == 2) {
+            printf("STATUS GERAL: INTERVENÇÃO CRÍTICA EXIGIDA\n");
+        } else if (status[i][0] == 1 || status[i][1] == 1 || status[i][2] == 1) {
+            printf("STATUS GERAL: ATENÇÃO\n");
+        } else {
+            printf("STATUS GERAL: NORMAL\n");
+        }
+    }
+    printf("\n--------------------------------------------------------------------\n");
 }
