@@ -212,3 +212,71 @@ void assistente_faixa_dinamica(float velocidades[][2], float sensores_laterais[]
         }
     }
 }
+
+void processar_relatorio(float velocidade[][2], float sensores_frontais[][3], float sensores_laterais[][2], float processamento[][2], int status[][3], int total_amostras, float atrito, int sensibilidade) {
+    
+    if (total_amostras == 0) {
+        printf("\nNão há nenhuma amostra para processamento\n");
+        return;
+    }
+
+    extrair_mediana(processamento, sensores_frontais, total_amostras);
+    calcular_distancia_segura(processamento, velocidade, total_amostras, atrito, sensibilidade);
+    analise_risco_frontal(velocidade, processamento, status, total_amostras);
+    assistente_faixa_dinamica(velocidade, sensores_laterais, status, total_amostras);
+
+    printf("\n--------------------------------------------------------------------\n");
+    printf("                  RELATÓRIO DE TELEMETRIA E RISCOS                    \n");
+    printf("----------------------------------------------------------------------\n");
+
+    for (int i = 0; i < total_amostras; i++) {
+        printf("\n AMOSTRA %d \n", i + 1);
+
+        printf("Dados de entrada: \n");
+        printf("Velocidade Atual: %.1f km/h ; Veículo à Frente: %.1f km/h\n", velocidade[i][0], velocidade[i][1]);
+        printf("Radar: %.2f m ; Lidar: %.2f m ; Câmera: %.2f m\n", sensores_frontais[i][0], sensores_frontais[i][1], sensores_frontais[i][2]);
+        printf("Faixa da Esquerda: %.2f m ; Faixa da Direita: %.2f m\n", sensores_laterais[i][0], sensores_laterais[i][1]);
+
+        printf("Dados processados: \n");
+        printf("Distância Validada: %.2f m ; Distância Segura Exigida: %.2f m\n", processamento[i][0], processamento[i][1]);
+
+        printf("Traduçâo de status: \n");
+        
+        printf("Status Frontal: ");
+        if (status[i][0] == 0) {
+            printf("SEGURO\n");
+        } else if (status[i][0] == 1) {
+            printf("ATENÇÃO\n");
+        } else {
+            printf("RISCO DE COLISÃO (AEB ACIONADO)\n");
+        }
+
+        printf("Faixa Esquerda: ");
+        if (status[i][1] == 0) {
+            printf("NORMAL\n");
+        } else if (status[i][1] == 1) {
+            printf("ATENÇÃO\n");
+        } else {
+            printf("PERIGO DE INVASÃO\n");
+        }
+
+        printf("Faixa Direita: ");
+        if (status[i][2] == 0) {
+            printf("NORMAL\n");
+        } else if (status[i][2] == 1) {
+            printf("ATENÇÃO\n");
+        } else {
+            printf("PERIGO DE INVASÃO\n");
+        }
+
+        printf("Decisão Geral: ");
+        if (status[i][0] == 2 || status[i][1] == 2 || status[i][2] == 2) {
+            printf("STATUS GERAL: INTERVENÇÃO CRÍTICA EXIGIDA\n");
+        } else if (status[i][0] == 1 || status[i][1] == 1 || status[i][2] == 1) {
+            printf("STATUS GERAL: ATENÇÃO\n");
+        } else {
+            printf("STATUS GERAL: NORMAL\n");
+        }
+    }
+    printf("\n--------------------------------------------------------------------\n");
+}
